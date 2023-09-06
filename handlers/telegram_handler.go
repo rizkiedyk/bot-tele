@@ -48,6 +48,10 @@ func (h *telegramHandler) HandleTelegramMessage(c *gin.Context) {
 		if err := h.uc.SendPoll(chatID); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
+	case "button":
+		if err := h.uc.SendButton(chatID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 	default:
 		if err := h.uc.SendMessage(chatID, "Are you okay ?"); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

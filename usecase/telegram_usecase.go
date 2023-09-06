@@ -15,6 +15,7 @@ type TelegramUseCase interface {
 	SendAudio(chatID int64) error
 	SendVideo(chatID int64) error
 	SendPoll(chatID int64) error
+	SendButton(chatID int64) error
 }
 
 type telegramUseCase struct {
@@ -164,6 +165,43 @@ func (uc *telegramUseCase) SendPoll(chatID int64) error {
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to send poll. Status code: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+func (uc *telegramUseCase) SendButton(chatID int64) error {
+	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", uc.telegramToken)
+
+	keyboard := map[string]interface{}{
+		"keyboard": [][]map[string]interface{}{
+			{
+				{"text": "Rizki"},
+				{"text": "Juju"},
+			},
+		},
+	}
+
+	data := map[string]interface{}{
+		"chat_id":      chatID,
+		"text":         "What is this ?",
+		"reply_markup": keyboard,
+	}
+
+	messageJSON, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(messageJSON))
+	if err != nil {
+		return nil
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to send button. Status code: %d", resp.StatusCode)
 	}
 
 	return nil
