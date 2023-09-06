@@ -43,7 +43,7 @@ func telSendMessage(chatID int64, text string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Failed to send. Status code: %d", resp.StatusCode)
+		return fmt.Errorf("failed to send. Status code: %d", resp.StatusCode)
 	}
 
 	return nil
@@ -73,7 +73,7 @@ func telSendImage(chatID int64) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Failed to send image. Status code: %d", resp.StatusCode)
+		return fmt.Errorf("failed to send image. Status code: %d", resp.StatusCode)
 	}
 
 	return nil
@@ -103,7 +103,7 @@ func telSendAudio(chatID int64) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Failed to send audio. Status code: %d", resp.StatusCode)
+		return fmt.Errorf("failed to send audio. Status code: %d", resp.StatusCode)
 	}
 
 	return nil
@@ -133,7 +133,39 @@ func telSendVideo(chatID int64) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Failed to send video. Status code: %d", resp.StatusCode)
+		return fmt.Errorf("failed to send video. Status code: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+func telSendPoll(chatID int64) error {
+	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendPoll", telegramToken)
+
+	options := []string{"North", "South", "East", "West"}
+
+	data := map[string]interface{}{
+		"chat_id":           chatID,
+		"question":          "In which direction does the sun rise ?",
+		"options":           options,
+		"is_anonymous":      false,
+		"type":              "quiz",
+		"correct_option_id": 2,
+	}
+
+	messageJSON, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(messageJSON))
+	if err != nil {
+		return nil
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to send poll. Status code: %d", resp.StatusCode)
 	}
 
 	return nil
@@ -178,6 +210,11 @@ func main() {
 			err := telSendVideo(chatID)
 			if err != nil {
 				fmt.Println("Error sending video : ", err)
+			}
+		case "poll":
+			err := telSendPoll(chatID)
+			if err != nil {
+				fmt.Println("Error sending poll : ", err)
 			}
 		default:
 			err := telSendMessage(chatID, "Are you okay ?")
