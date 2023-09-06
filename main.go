@@ -109,6 +109,36 @@ func telSendAudio(chatID int64) error {
 	return nil
 }
 
+func telSendVideo(chatID int64) error {
+	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendVideo", telegramToken)
+
+	data := map[string]interface{}{
+		"chat_id": chatID,
+		"video":   "https://www.appsloveworld.com/wp-content/uploads/2018/10/640.mp4",
+	}
+
+	var requestBody bytes.Buffer
+	writer := multipart.NewWriter(&requestBody)
+
+	for key, val := range data {
+		_ = writer.WriteField(key, fmt.Sprintf("%v", val))
+	}
+
+	writer.Close()
+
+	resp, err := http.Post(url, writer.FormDataContentType(), &requestBody)
+	if err != nil {
+		return nil
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Failed to send video. Status code: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
 func main() {
 	r := gin.Default()
 
@@ -143,6 +173,11 @@ func main() {
 			err := telSendAudio(chatID)
 			if err != nil {
 				fmt.Println("Error sending audio : ", err)
+			}
+		case "video":
+			err := telSendVideo(chatID)
+			if err != nil {
+				fmt.Println("Error sending video : ", err)
 			}
 		default:
 			err := telSendMessage(chatID, "Are you okay ?")
