@@ -79,6 +79,36 @@ func telSendImage(chatID int64) error {
 	return nil
 }
 
+func telSendAudio(chatID int64) error {
+	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendAudio", telegramToken)
+
+	data := map[string]interface{}{
+		"chat_id": chatID,
+		"audio":   "http://www.largesound.com/ashborytour/sound/brobob.mp3",
+	}
+
+	var requestBody bytes.Buffer
+	writer := multipart.NewWriter(&requestBody)
+
+	for key, val := range data {
+		_ = writer.WriteField(key, fmt.Sprintf("%v", val))
+	}
+
+	writer.Close()
+
+	resp, err := http.Post(url, writer.FormDataContentType(), &requestBody)
+	if err != nil {
+		return nil
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Failed to send audio. Status code: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
 func main() {
 	r := gin.Default()
 
@@ -109,8 +139,13 @@ func main() {
 			if err != nil {
 				fmt.Println("Error sending image:", err)
 			}
+		case "audio":
+			err := telSendAudio(chatID)
+			if err != nil {
+				fmt.Println("Error sending audio : ", err)
+			}
 		default:
-			err := telSendMessage(chatID, "from webhook")
+			err := telSendMessage(chatID, "Are you okay ?")
 			if err != nil {
 				fmt.Println("Error sending message:", err)
 			}
